@@ -1,0 +1,9 @@
+{
+  "name": "clasificador-iot-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend del clasificador de residuos (Node.js + Express + MongoDB).",
+  "engines": {
+    "node": ">=22"
+  }
+}

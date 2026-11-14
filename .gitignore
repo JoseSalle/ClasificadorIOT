@@ -1,0 +1,14 @@
+# Backend
+node_modules/
+.env
+npm-debug.log*
+
+# Firmware (PlatformIO)
+.pio/
+firmware/include/secrets.h
+
+# Editor / SO
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
