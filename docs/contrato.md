@@ -26,7 +26,7 @@ Cuerpo: la foto JPEG en binario (no Base64, no JSON), máximo **300 KB**.
 | `mensaje` | Sí | Texto corto listo para la OLED |
 | `etiqueta` | No | Qué vio la IA; para la matriz de 15 residuos |
 | `confianza` | No | 0 a 1, o `null` si el proveedor no da uno fiable |
-| `id` | Sí | Une la prueba con el log del backend |
+| `id` | Sí | Id del registro guardado en MongoDB; une la prueba con su registro |
 | `tiempo_ms` | Sí | Latencia medida en el backend |
 
 ## Respuesta con error (mismo formato para todos los códigos)
@@ -54,6 +54,24 @@ Errores que detecta la placa (no llegan del backend): sin Wi-Fi, fallo TLS, más
 | Timeout del proveedor (backend) | 8 s |
 | Timeout total (ESP32) | 15 s |
 | Umbral de confianza | 0.70 |
+
+## Registro en MongoDB
+
+El backend guarda cada petición (éxito o error) en MongoDB antes de responder. La ESP32 nunca consulta la base.
+
+| Campo | Contenido |
+|---|---|
+| `_id` | Mismo valor que `id` en la respuesta |
+| `fecha` | Fecha y hora de la petición |
+| `dispositivo` | Identificador del dispositivo |
+| `ok` | `true` o `false` |
+| `categoria` | Categoría devuelta, o `null` si hubo error |
+| `etiqueta` | Lo que vio la IA |
+| `confianza` | 0 a 1, o `null` |
+| `error` | Código de error, o `null` |
+| `tiempo_ms` | Latencia medida en el backend |
+
+La foto no se guarda.
 
 ## Pendientes
 
