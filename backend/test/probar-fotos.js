@@ -22,7 +22,7 @@ const salida = path.join(__dirname, `resultados-10J-${modelo}.csv`);
 const opciones = {
   apiKey: process.env.VISION_API_KEY,
   modelo,
-  timeoutMs: Number(process.env.TIMEOUT_PROVEEDOR_MS) || 8000,
+  timeoutMs: Number(process.env.TIMEOUT_PROVEEDOR_MS) || 12000,
 };
 const umbral = Number(process.env.UMBRAL_CONFIANZA) || 0.7;
 

@@ -44,7 +44,7 @@ class ErrorProveedor extends Error {
  * @param {{ apiKey: string, modelo?: string, timeoutMs?: number }} opciones
  * @returns {Promise<string>} el texto JSON que contestó Gemini
  */
-async function clasificarConGemini(foto, { apiKey, modelo = MODELO_POR_DEFECTO, timeoutMs = 8000 }) {
+async function clasificarConGemini(foto, { apiKey, modelo = MODELO_POR_DEFECTO, timeoutMs = 12000 }) {
   if (!apiKey) throw new ErrorProveedor('PROVEEDOR_FALLO', 'Falta VISION_API_KEY');
 
   const cuerpo = {
@@ -63,7 +63,7 @@ async function clasificarConGemini(foto, { apiKey, modelo = MODELO_POR_DEFECTO, 
     },
   };
 
-  // Todos los intentos comparten el mismo límite de tiempo (8 s del contrato).
+  // Todos los intentos comparten el mismo límite de tiempo (12 s del contrato).
   const limite = Date.now() + timeoutMs;
   let ultimoError;
 

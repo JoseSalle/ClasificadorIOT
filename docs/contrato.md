@@ -42,7 +42,7 @@ Cuerpo: la foto JPEG en binario (no Base64, no JSON), máximo **300 KB**.
 | `NO_AUTORIZADO` | 401 | Falta la clave del dispositivo o es incorrecta |
 | `IMAGEN_GRANDE` | 413 | La foto pasa de 300 KB |
 | `PROVEEDOR_FALLO` | 502 | La API de visión respondió con error |
-| `TIEMPO_AGOTADO` | 504 | La API de visión tardó más de 8 s |
+| `TIEMPO_AGOTADO` | 504 | La API de visión tardó más de 12 s |
 
 Errores que detecta la placa (no llegan del backend): sin Wi-Fi, fallo TLS, más de 15 s sin respuesta, JSON ilegible. Muestra un mensaje fijo y vuelve a `ESPERANDO`.
 
@@ -51,7 +51,7 @@ Errores que detecta la placa (no llegan del backend): sin Wi-Fi, fallo TLS, más
 | Parámetro | Valor |
 |---|---:|
 | Tamaño máximo | 300 KB |
-| Timeout del proveedor (backend) | 8 s |
+| Timeout del proveedor (backend) | 12 s |
 | Timeout total (ESP32) | 15 s |
 | Umbral de confianza | 0.70 |
 
