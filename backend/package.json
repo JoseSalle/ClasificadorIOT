@@ -5,5 +5,9 @@
   "description": "Backend del clasificador de residuos (Node.js + Express + MongoDB).",
   "engines": {
     "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "probar-fotos": "node --env-file=.env test/probar-fotos.js"
   }
 }
