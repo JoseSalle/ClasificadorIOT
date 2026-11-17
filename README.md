@@ -56,7 +56,7 @@ Cada respuesta trae un `id`. El servidor escribe una línea JSON por petición c
 
 **Proveedor de IA elegido:** Gemini (`gemini-3.5-flash-lite`, API `generateContent`). El adaptador está en `src/proveedores/gemini.js` y el traductor a las 3 categorías en `src/traductor.js`. Latencia medida en local: ~3.3 s por foto.
 
-**Publicado en Render** (plan gratuito, HTTPS automático) con `render.yaml`: en render.com, **New → Blueprint**, elegir este repositorio y capturar `DEVICE_KEY`, `MONGODB_URI`, `MONGODB_DB` y `VISION_API_KEY`. El plan gratuito se duerme tras ~15 min sin uso: antes de una prueba abrir `https://<servicio>.onrender.com/health` y esperar respuesta. MongoDB Atlas debe permitir `0.0.0.0/0` en Network Access.
+**Publicado en Render** (plan gratuito, HTTPS automático) con `render.yaml`: en render.com, **New → Blueprint**, elegir este repositorio y capturar `DEVICE_KEY`, `MONGODB_URI`, `MONGODB_DB` y `VISION_API_KEY`. El plan gratuito se duerme tras ~15 min sin uso y tarda 30–60 s en despertar, más que los 18 s que espera la placa: la primera foto daría "Sin respuesta". Para evitarlo, un monitor gratuito (UptimeRobot o cron-job.org) que llame a `https://<servicio>.onrender.com/health` cada 10 min lo mantiene despierto (las 750 h gratis al mes alcanzan); sin monitor, abrir esa URL y esperar respuesta antes de cada prueba. MongoDB Atlas debe permitir `0.0.0.0/0` en Network Access.
 
 ### Firmware (`firmware/`)
 

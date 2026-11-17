@@ -12,3 +12,6 @@ firmware/include/secrets.h
 !.vscode/extensions.json
 .DS_Store
 Thumbs.db
+
+# Resultados locales de npm run probar-fotos
+backend/test/resultados-*.csv

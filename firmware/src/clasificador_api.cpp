@@ -37,6 +37,7 @@ Respuesta clasificarFoto(const uint8_t *jpg, size_t len) {
   http.setTimeout(TIMEOUT_TOTAL_MS);
   // shortcut: cada lectura tiene 18 s de límite, no la operación completa; suficiente
   // porque el backend corta al proveedor a los 12 s y siempre contesta antes.
+  // Excepción: Render dormido tarda 30-60 s en despertar → TIEMPO_AGOTADO (ver README, monitor de /health).
 
   uint32_t t0 = millis();
   if (!http.begin(tls, BACKEND_URL)) return errorLocal(Estado::SIN_CONEXION, "Sin conexion");
