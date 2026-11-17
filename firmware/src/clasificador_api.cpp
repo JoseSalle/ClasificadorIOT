@@ -6,7 +6,7 @@
 #include "certificados.h"
 #include "secrets.h"
 
-static const uint32_t TIMEOUT_TOTAL_MS = 15000; // contrato: espera máxima de la placa
+static const uint32_t TIMEOUT_TOTAL_MS = 18000; // contrato: espera máxima de la placa
 static const size_t MAX_JPEG = 300 * 1024;      // contrato: también se valida en la placa
 
 bool conectarWifi(uint32_t timeout_ms) {
@@ -35,8 +35,8 @@ Respuesta clasificarFoto(const uint8_t *jpg, size_t len) {
   HTTPClient http;
   http.setConnectTimeout(8000);
   http.setTimeout(TIMEOUT_TOTAL_MS);
-  // shortcut: cada lectura tiene 15 s de límite, no la operación completa; suficiente
-  // porque el backend corta al proveedor a los 8 s y siempre contesta antes.
+  // shortcut: cada lectura tiene 18 s de límite, no la operación completa; suficiente
+  // porque el backend corta al proveedor a los 12 s y siempre contesta antes.
 
   uint32_t t0 = millis();
   if (!http.begin(tls, BACKEND_URL)) return errorLocal(Estado::SIN_CONEXION, "Sin conexion");

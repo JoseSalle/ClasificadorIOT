@@ -10,5 +10,7 @@ module.exports = function deviceAuth(req, res, next) {
   if (key.length !== expected.length || !timingSafeEqual(key, expected)) {
     return next(new AppError('NO_AUTORIZADO'));
   }
+  // shortcut: una clave = un dispositivo; con más contenedores, una clave por dispositivo.
+  req.dispositivo = 'clasificador-001';
   next();
 };

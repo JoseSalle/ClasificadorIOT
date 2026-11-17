@@ -1,43 +1,66 @@
-// 07J/08C: el adaptador de Gemini con fetch simulado (no llama a la API real).
-process.env.DEVICE_KEY = 'clave-de-prueba';
-process.env.GEMINI_API_KEY = 'clave-falsa';
+// Pruebas del adaptador de Gemini con respuestas simuladas (no llama a la IA).
+// Correr desde backend/:  npm test
 
-const { test, afterEach } = require('node:test');
-const assert = require('node:assert');
-const gemini = require('../src/providers/gemini.provider');
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { clasificarConGemini } = require('../src/proveedores/gemini');
 
-const realFetch = global.fetch;
-afterEach(() => { global.fetch = realFetch; });
-const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
+const FOTO = Buffer.from([0xff, 0xd8, 0xff]);
+const OK = { categoria: 'organico', etiqueta: 'pan', confianza: 0.9 };
 
-const respuesta = (status, body) => async () => new Response(JSON.stringify(body), { status });
+function respuestaOk() {
+  return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify(OK) }] } }] }) };
+}
+function respuestaError(status) {
+  return { ok: false, status, text: async () => `error ${status}` };
+}
+// Cambia fetch por una lista de respuestas y cuenta las llamadas.
+function simularFetch(t, ...respuestas) {
+  let llamadas = 0;
+  t.mock.method(globalThis, 'fetch', async (_url, { signal }) => {
+    const r = respuestas[Math.min(llamadas++, respuestas.length - 1)];
+    if (r === 'lento') {
+      return new Promise((_, reject) => signal.addEventListener('abort', () => reject(signal.reason)));
+    }
+    return r;
+  });
+  return () => llamadas;
+}
 
-test('envía la imagen en base64 con la clave en el header y lee el JSON', async () => {
-  let enviado;
-  global.fetch = async (url, opts) => {
-    enviado = { url, opts };
-    return respuesta(200, { candidates: [{ content: { parts: [{ text: '{"etiqueta":"lata","material":"metal","confianza":0.9}' }] } }] })();
-  };
-  const r = await gemini.classify(JPEG);
-  assert.deepEqual(r, { etiqueta: 'lata', material: 'metal', confianza: 0.9 });
-  assert.match(enviado.url, /:generateContent$/);
-  assert.equal(enviado.opts.headers['x-goog-api-key'], 'clave-falsa');
-  assert.equal(JSON.parse(enviado.opts.body).contents[0].parts[0].inline_data.data, JPEG.toString('base64'));
+test('respuesta normal', async (t) => {
+  const llamadas = simularFetch(t, respuestaOk());
+  assert.deepEqual(JSON.parse(await clasificarConGemini(FOTO, { apiKey: 'x' })), OK);
+  assert.equal(llamadas(), 1);
 });
 
-test('error HTTP de la API (clave inválida, cuota) → lanza error', async () => {
-  global.fetch = respuesta(400, { error: { code: 400, status: 'INVALID_ARGUMENT', message: 'API key not valid' } });
-  await assert.rejects(gemini.classify(JPEG), /Gemini HTTP 400/);
+test('503 (saturado) se reintenta una vez', async (t) => {
+  const llamadas = simularFetch(t, respuestaError(503), respuestaOk());
+  assert.deepEqual(JSON.parse(await clasificarConGemini(FOTO, { apiKey: 'x' })), OK);
+  assert.equal(llamadas(), 2);
 });
 
-test('imagen que Gemini no puede leer → error marcado como imagen inválida', async () => {
-  global.fetch = respuesta(400, { error: { code: 400, message: 'Unable to process input image. Please retry', status: 'INVALID_ARGUMENT' } });
-  await assert.rejects(gemini.classify(JPEG), (err) => err.imagenInvalida === true);
+test('503 dos veces → PROVEEDOR_FALLO', async (t) => {
+  const llamadas = simularFetch(t, respuestaError(503), respuestaError(503));
+  await assert.rejects(clasificarConGemini(FOTO, { apiKey: 'x' }), { codigo: 'PROVEEDOR_FALLO' });
+  assert.equal(llamadas(), 2);
 });
 
-test('respuesta sin candidatos o con JSON roto → lanza error', async () => {
-  global.fetch = respuesta(200, { candidates: [{ finishReason: 'SAFETY' }] });
-  await assert.rejects(gemini.classify(JPEG), /sin contenido/);
-  global.fetch = respuesta(200, { candidates: [{ content: { parts: [{ text: '{roto' }] } }] });
-  await assert.rejects(gemini.classify(JPEG), SyntaxError);
+test('400 (petición mala) no se reintenta', async (t) => {
+  const llamadas = simularFetch(t, respuestaError(400), respuestaOk());
+  await assert.rejects(clasificarConGemini(FOTO, { apiKey: 'x' }), { codigo: 'PROVEEDOR_FALLO' });
+  assert.equal(llamadas(), 1);
+});
+
+test('si tarda más del límite → TIEMPO_AGOTADO', async (t) => {
+  simularFetch(t, 'lento');
+  // El temporizador de AbortSignal.timeout no mantiene vivo el proceso; este sí.
+  const vivo = setTimeout(() => {}, 2000);
+  await assert.rejects(clasificarConGemini(FOTO, { apiKey: 'x', timeoutMs: 200 }), { codigo: 'TIEMPO_AGOTADO' });
+  clearTimeout(vivo);
+});
+
+test('sin clave → PROVEEDOR_FALLO sin llamar a Gemini', async (t) => {
+  const llamadas = simularFetch(t, respuestaOk());
+  await assert.rejects(clasificarConGemini(FOTO, { apiKey: '' }), { codigo: 'PROVEEDOR_FALLO' });
+  assert.equal(llamadas(), 0);
 });

@@ -15,13 +15,15 @@ services:
         sync: false
       - key: MONGODB_URI
         sync: false
-      - key: GEMINI_API_KEY
+      - key: MONGODB_DB
+        sync: false
+      - key: VISION_API_KEY
         sync: false
       - key: VISION_PROVIDER
         value: gemini
-      - key: GEMINI_MODEL
+      - key: VISION_MODEL
         value: gemini-3.5-flash-lite
-      - key: PROVIDER_TIMEOUT_MS
-        value: "8000"
+      - key: TIMEOUT_PROVEEDOR_MS
+        value: "12000"
       - key: UMBRAL_CONFIANZA
         value: "0.70"

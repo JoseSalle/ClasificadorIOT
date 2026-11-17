@@ -1,32 +1,31 @@
+// 08C: une el adaptador de Gemini (src/proveedores/gemini.js) con el traductor (src/traductor.js).
 const env = require('../../config/env');
-const vision = require('../../providers/vision.provider');
-const { normalizar, MENSAJES } = require('./normalization');
+const gemini = require('../../proveedores/gemini');
+const { traducir } = require('../../traductor');
 const { AppError } = require('../../errors');
 
 async function clasificar(jpeg) {
   const t0 = performance.now();
-  const signal = AbortSignal.timeout(env.providerTimeoutMs);
-  let r;
+  const ms = () => Math.round(performance.now() - t0);
+  let texto;
   try {
-    // El race garantiza el límite de 8 s aunque el proveedor ignore el signal.
-    r = await Promise.race([
-      vision.classify(jpeg, { signal }),
-      new Promise((_, reject) => signal.addEventListener('abort', () => reject(signal.reason))),
-    ]);
+    // El adaptador ya respeta el límite de 12 s, incluidos sus reintentos.
+    texto = await gemini.clasificarConGemini(jpeg, {
+      apiKey: env.visionApiKey,
+      modelo: env.visionModel,
+      timeoutMs: env.timeoutProveedorMs,
+    });
   } catch (err) {
-    if (err?.name === 'TimeoutError') throw new AppError('TIEMPO_AGOTADO');
-    if (err?.imagenInvalida) throw new AppError('IMAGEN_INVALIDA', { causa: err.message });
-    throw new AppError('PROVEEDOR_FALLO', { causa: err?.message });
+    const detalle = { causa: err.message, tiempo_ms: ms() };
+    // JPEG con cabecera válida pero contenido corrupto: es la imagen, no el proveedor.
+    if (err.message?.includes('Unable to process input image')) throw new AppError('IMAGEN_INVALIDA', detalle);
+    throw new AppError(err.codigo === 'TIEMPO_AGOTADO' ? 'TIEMPO_AGOTADO' : 'PROVEEDOR_FALLO', detalle);
   }
-  const tiempo_ms = Math.round(performance.now() - t0);
 
-  const categoria = normalizar(r?.material);
-  const confianza = typeof r?.confianza === 'number' ? r.confianza : null;
-  // shortcut: confianza null se acepta (pendiente en docs/contrato.md).
-  if (!categoria || (confianza !== null && confianza < env.umbralConfianza)) {
-    throw new AppError('NO_CLASIFICABLE', { etiqueta: r?.etiqueta, material: r?.material, confianza, tiempo_ms });
-  }
-  return { categoria, mensaje: MENSAJES[categoria], etiqueta: r.etiqueta ?? null, confianza, tiempo_ms, material: r.material };
+  const r = traducir(texto, { umbral: env.umbralConfianza });
+  const tiempo_ms = ms();
+  if (!r.ok) throw new AppError('NO_CLASIFICABLE', { etiqueta: r.etiqueta, confianza: r.confianza, tiempo_ms });
+  return { categoria: r.categoria, mensaje: r.mensaje, etiqueta: r.etiqueta, confianza: r.confianza, tiempo_ms };
 }
 
 module.exports = { clasificar };

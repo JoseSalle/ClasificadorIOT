@@ -1,63 +1,65 @@
 # ClasificadorIOT
 
-Clasificador inteligente de residuos: ESP32-S3 + cámara → backend Node.js (HTTPS) → Gemini → MongoDB.
+Clasificador de residuos con ESP32-S3. Al presionar un botón toma una foto, la envía a un servidor que consulta una IA de visión y muestra en pantalla si el residuo es **orgánico**, **inorgánico reciclable** o **inorgánico no reciclable**.
 
-| Carpeta | Qué es |
-|---|---|
-| `backend/` | Node.js + Express: endpoint `POST /api/clasificar`, adaptador de visión, normalización y MongoDB |
-| `firmware/` | Proyecto PlatformIO de la ESP32-S3 |
-| `docs/contrato.md` | Contrato JSON ESP32 ↔ backend. Fuente única; cambiar aquí primero |
+## Cómo funciona
 
-## Proveedor de IA elegido
+```
+Botón → ESP32-S3 + cámara → (HTTPS) → Servidor Node.js → IA de visión
+                                            │
+Pantalla ← resultado (JSON) ←───────────────┘
+                                            └→ MongoDB (solo guarda resultados)
+```
 
-**Gemini** (Google), modelo `gemini-3.5-flash-lite` vía API REST `generateContent`.
+El detalle paso a paso está en [`docs/funcionamiento.md`](docs/funcionamiento.md) y el formato de comunicación en [`docs/contrato.md`](docs/contrato.md).
 
-- Responde en JSON estructurado (`etiqueta`, `material`, `confianza`) y la normalización a las 3 categorías la hace el backend.
-- Latencia medida en local: ~3.3 s por foto, dentro del límite de 8 s del contrato.
-- Tiene nivel gratuito con API key de Google AI Studio.
-- La `confianza` la reporta el propio modelo (no está calibrada): el umbral de 0.70 se ajusta con la prueba de 15 residuos.
+## Estructura
 
-## Backend
+```
+backend/     servidor Node.js
+firmware/    código de la ESP32-S3 (PlatformIO)
+pruebas/     protocolo, matriz de resultados y evidencias
+docs/
+├── contrato.md        comunicación placa ↔ servidor
+├── funcionamiento.md  qué hace el dispositivo
+├── hardware/          componentes, pines, conexiones y carcasa 3D
+└── informe/           informe del proyecto
+```
 
-Requiere `backend/.env` (no está en el repositorio; pedirlo al equipo) con `DEVICE_KEY`, `MONGODB_URI`, `GEMINI_API_KEY`, `VISION_PROVIDER=gemini`, `GEMINI_MODEL`, `PROVIDER_TIMEOUT_MS=8000` y `UMBRAL_CONFIANZA=0.70`.
+## Flujo de trabajo
+
+1. **Cada quien trabaja en su propia rama**, creada desde `main` y nombrada con lo que hace: `servidor-clasificar`, `firmware-pantallas`.
+2. **Commits pequeños** que digan qué cambió.
+3. **Para unir a `main`**, se abre un pull request y otra persona del equipo lo revisa. `main` siempre debe funcionar.
+4. **La documentación** (`docs/`, `pruebas/`) puede subirse directo a `main`.
+
+## Cómo usarlo
+
+### Servidor (`backend/`)
 
 ```bash
 cd backend
+cp .env.example .env      # llenar DEVICE_KEY, MONGODB_URI y VISION_API_KEY
 npm install
 npm run dev               # http://localhost:3000
-npm test                  # contrato, adaptador Gemini y casos de normalización
+npm test                  # contrato del endpoint, traductor y adaptador de Gemini
+npm run probar-fotos      # 10J: fotos de test/fotos contra Gemini real
 ```
 
-Solicitudes de prueba (en local o contra la URL publicada):
+Solicitudes de prueba del contrato (en local o contra la URL publicada):
 
 ```bash
-BASE_URL=http://localhost:3000 DEVICE_KEY=<clave> bash scripts/solicitudes.sh foto1.jpg foto2.jpg
+BASE_URL=http://localhost:3000 DEVICE_KEY=<clave> bash scripts/solicitudes.sh foto1.jpg
 ```
 
-Cada respuesta trae un `id`. El backend escribe una línea JSON por petición con ese `id` y guarda cada clasificación (resultado o error, sin la foto) en la colección `classifications` de MongoDB con el mismo `id`.
+Cada respuesta trae un `id`. El servidor escribe una línea JSON por petición con ese `id` y guarda el registro en la colección `classifications` de MongoDB antes de responder (campos en `docs/contrato.md`).
 
-### Cómo clasifica
+**Proveedor de IA elegido:** Gemini (`gemini-3.5-flash-lite`, API `generateContent`). El adaptador está en `src/proveedores/gemini.js` y el traductor a las 3 categorías en `src/traductor.js`. Latencia medida en local: ~3.3 s por foto.
 
-1. `providers/gemini.provider.js` manda la foto a Gemini y le pide `etiqueta`, `material` (lista cerrada) y `confianza`.
-2. `modules/classification/normalization.js` convierte `material` en una de las tres categorías.
-3. Si el material es `otro` o `ninguno`, o la confianza queda bajo `UMBRAL_CONFIANZA`, responde `NO_CLASIFICABLE`.
+**Publicado en Render** (plan gratuito, HTTPS automático) con `render.yaml`: en render.com, **New → Blueprint**, elegir este repositorio y capturar `DEVICE_KEY`, `MONGODB_URI`, `MONGODB_DB` y `VISION_API_KEY`. El plan gratuito se duerme tras ~15 min sin uso: antes de una prueba abrir `https://<servicio>.onrender.com/health` y esperar respuesta. MongoDB Atlas debe permitir `0.0.0.0/0` en Network Access.
 
-### Despliegue (Render)
+### Firmware (`firmware/`)
 
-`render.yaml` define el servicio. En [render.com](https://render.com): **New → Blueprint**, elegir este repositorio y capturar `DEVICE_KEY`, `MONGODB_URI` y `GEMINI_API_KEY`. Render da HTTPS automático en `https://<servicio>.onrender.com`.
+Copiar `firmware/include/secrets.example.h` a `secrets.h` y llenarlo (`BACKEND_URL` = `https://<servicio>.onrender.com/api/clasificar`, `DEVICE_KEY` igual a la del servidor). Compilar y subir con PlatformIO.
 
-El plan gratuito se duerme tras ~15 min sin uso y tarda en despertar: antes de una demo o prueba, abrir `https://<servicio>.onrender.com/health` y esperar a que responda. MongoDB Atlas debe permitir `0.0.0.0/0` en Network Access (Render no tiene IP fija en el plan gratuito).
-
-## Firmware
-
-Requiere `firmware/include/secrets.h` (no está en el repositorio):
-
-```cpp
-#pragma once
-#define WIFI_SSID     "red"
-#define WIFI_PASSWORD "contrasena"
-#define BACKEND_URL   "https://<servicio>.onrender.com/api/clasificar"
-#define DEVICE_KEY    "<la misma DEVICE_KEY de backend/.env>"
-```
-
-`clasificarFoto(jpg, len)` (en `src/clasificador_api.cpp`) conecta el Wi-Fi si hace falta, manda el JPEG por HTTPS validando el certificado de Google y devuelve la respuesta ya interpretada. El `main.cpp` actual es de prueba: al presionar BOOT manda `data/foto_prueba.jpg` y escribe la respuesta en el Monitor Serie (115200).
+`clasificarFoto(jpg, len)` (`src/clasificador_api.cpp`) conecta el Wi-Fi si hace falta, manda el JPEG por HTTPS validando el certificado del servidor, espera hasta 18 s y devuelve la respuesta ya interpretada. El `main.cpp` actual es de prueba: al presionar BOOT manda `data/foto_prueba.jpg` y escribe la respuesta en el Monitor Serie (115200).

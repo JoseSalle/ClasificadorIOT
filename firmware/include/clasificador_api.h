@@ -8,7 +8,7 @@ enum class Estado {
   ERROR_SERVIDOR,    // 400/401/413/502/504 con error.codigo del contrato
   SIN_WIFI,          // errores que detecta la placa (no vienen del backend):
   SIN_CONEXION,      //   no se pudo abrir TCP/TLS (servidor caído, certificado inválido)
-  TIEMPO_AGOTADO,    //   más de 15 s sin respuesta
+  TIEMPO_AGOTADO,    //   más de 18 s sin respuesta
   RESPUESTA_INVALIDA // JSON que no se puede leer
 };
 
@@ -28,7 +28,7 @@ struct Respuesta {
 // Conecta (o reconecta) al Wi-Fi de secrets.h. Devuelve true si quedó conectado.
 bool conectarWifi(uint32_t timeout_ms = 10000);
 
-// Manda el JPEG por HTTPS y devuelve la respuesta ya interpretada. Bloquea hasta 15 s.
+// Manda el JPEG por HTTPS y devuelve la respuesta ya interpretada. Bloquea hasta 18 s.
 Respuesta clasificarFoto(const uint8_t *jpg, size_t len);
 
 const char *nombreEstado(Estado e);

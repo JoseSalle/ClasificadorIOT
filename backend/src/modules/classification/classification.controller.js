@@ -6,17 +6,15 @@ const { AppError } = require('../../errors');
 async function postClasificar(req, res, next) {
   try {
     if (!isJpeg(req.body)) throw new AppError('IMAGEN_INVALIDA');
-    const { material, ...r } = await clasificar(req.body);
-    res.locals.log = { categoria: r.categoria, etiqueta: r.etiqueta, material, confianza: r.confianza, tiempo_ms: r.tiempo_ms };
-    registrar({ _id: req.id, resultado: 'success', ...r, material }); // sin await: no retrasa la respuesta
+    const r = await clasificar(req.body);
+    res.locals.log = { categoria: r.categoria, etiqueta: r.etiqueta, confianza: r.confianza, tiempo_ms: r.tiempo_ms };
+    await registrar({
+      _id: req.id, fecha: req.fecha, dispositivo: req.dispositivo, ok: true,
+      categoria: r.categoria, etiqueta: r.etiqueta, confianza: r.confianza, error: null, tiempo_ms: r.tiempo_ms,
+    });
     res.json({ ok: true, ...r, id: req.id });
   } catch (err) {
-    // 401 y 413 no llegan aquí: no se guarda historial de peticiones sin autenticar.
-    if (err instanceof AppError) {
-      const { causa, ...detalle } = err.detalle;
-      registrar({ _id: req.id, resultado: 'error', error_codigo: err.codigo, ...detalle });
-    }
-    next(err);
+    next(err); // los errores se registran y responden en error.middleware.js
   }
 }
 
