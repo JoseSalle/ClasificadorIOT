@@ -6,20 +6,22 @@
 //   test/fotos/inorganico_no_reciclable/frituras.jpg
 //
 // Correr desde backend/:  npm run probar-fotos
-// Resultado: tabla en la terminal y test/resultados-10J.csv
+// Resultado: tabla en la terminal y test/resultados-10J-<modelo>.csv
+// Para comparar modelos, cambia VISION_MODEL en .env y vuelve a correrlo.
 
 const fs = require('node:fs');
 const path = require('node:path');
 const { traducir, CATEGORIAS } = require('../src/traductor');
-const { clasificarConGemini } = require('../src/proveedores/gemini');
+const { clasificarConGemini, MODELO_POR_DEFECTO } = require('../src/proveedores/gemini');
 
 const carpeta = path.resolve(process.argv[2] ?? path.join(__dirname, 'fotos'));
-const salida = path.join(__dirname, 'resultados-10J.csv');
 const MAX_BYTES = 300 * 1024;
+const modelo = process.env.VISION_MODEL || MODELO_POR_DEFECTO;
+const salida = path.join(__dirname, `resultados-10J-${modelo}.csv`);
 
 const opciones = {
   apiKey: process.env.VISION_API_KEY,
-  modelo: process.env.VISION_MODEL || undefined,
+  modelo,
   timeoutMs: Number(process.env.TIMEOUT_PROVEEDOR_MS) || 8000,
 };
 const umbral = Number(process.env.UMBRAL_CONFIANZA) || 0.7;
@@ -50,6 +52,7 @@ async function main() {
     process.exit(1);
   }
 
+  console.log(`Modelo: ${modelo} · ${fotos.length} fotos\n`);
   const filas = [];
   for (const { esperada, archivo, ruta } of fotos) {
     const foto = fs.readFileSync(ruta);
@@ -85,7 +88,8 @@ async function main() {
 
   const aciertos = filas.filter((f) => f.acierto === 'si').length;
   const promedio = Math.round(filas.reduce((s, f) => s + f.tiempo_ms, 0) / filas.length);
-  console.log(`\nAciertos: ${aciertos}/${filas.length} · Tiempo promedio: ${promedio} ms`);
+  const fallas = filas.filter((f) => f.obtenida === 'TIEMPO_AGOTADO' || f.obtenida === 'PROVEEDOR_FALLO').length;
+  console.log(`\nAciertos: ${aciertos}/${filas.length} · Sin respuesta de la IA: ${fallas} · Tiempo promedio: ${promedio} ms`);
   console.log(`Guardado en ${path.relative(process.cwd(), salida)}`);
 }
 
