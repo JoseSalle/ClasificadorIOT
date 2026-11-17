@@ -1,0 +1,9 @@
+# 17C: registros guardados por el servidor en Render (colección classifications)
+# Los _id son los mismos id de pruebas/evidencias/09C-solicitudes-render.txt
+{"_id":"c-8120ca2a","fecha":"2026-11-17T22:31:22.619Z","dispositivo":null,"ok":false,"categoria":null,"etiqueta":null,"confianza":null,"error":"NO_AUTORIZADO","tiempo_ms":null}
+{"_id":"c-0fc3803e","fecha":"2026-11-17T22:31:23.009Z","dispositivo":"clasificador-001","ok":false,"categoria":null,"etiqueta":null,"confianza":null,"error":"IMAGEN_INVALIDA","tiempo_ms":null}
+{"_id":"c-0cada2e0","fecha":"2026-11-17T22:31:23.690Z","dispositivo":"clasificador-001","ok":false,"categoria":null,"etiqueta":null,"confianza":null,"error":"IMAGEN_GRANDE","tiempo_ms":null}
+{"_id":"c-5a1cae0a","fecha":"2026-11-17T22:31:24.287Z","dispositivo":"clasificador-001","ok":false,"categoria":null,"etiqueta":null,"confianza":null,"error":"IMAGEN_INVALIDA","tiempo_ms":460}
+{"_id":"c-9f71ed7e","fecha":"2026-11-17T22:31:25.581Z","dispositivo":"clasificador-001","ok":true,"categoria":"organico","etiqueta":"rama con hojas","confianza":0.98,"error":null,"tiempo_ms":1701}
+{"_id":"c-5c9b8eb8","fecha":"2026-11-17T22:31:28.195Z","dispositivo":"clasificador-001","ok":true,"categoria":"inorganico_reciclable","etiqueta":"carton","confianza":0.95,"error":null,"tiempo_ms":5643}
+{"_id":"c-7e589bdf","fecha":"2026-11-17T22:31:34.542Z","dispositivo":"clasificador-001","ok":true,"categoria":"inorganico_no_reciclable","etiqueta":"fragmento de cerámica","confianza":0.95,"error":null,"tiempo_ms":1366}

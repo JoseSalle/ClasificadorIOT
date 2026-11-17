@@ -1,0 +1,31 @@
+== health
+{"ok":true}
+HTTP 200
+
+== sin clave → 401 NO_AUTORIZADO
+{"ok":false,"error":{"codigo":"NO_AUTORIZADO","mensaje":"No autorizado"},"id":"c-8120ca2a"}
+HTTP 401 | 0.357835s
+
+== no es JPEG → 400 IMAGEN_INVALIDA
+{"ok":false,"error":{"codigo":"IMAGEN_INVALIDA","mensaje":"Imagen invalida"},"id":"c-0fc3803e"}
+HTTP 400 | 0.339432s
+
+== más de 300 KB → 413 IMAGEN_GRANDE
+{"ok":false,"error":{"codigo":"IMAGEN_GRANDE","mensaje":"Imagen muy grande"},"id":"c-0cada2e0"}
+HTTP 413 | 0.724074s
+
+== JPEG corrupto (cabecera válida) → 400 IMAGEN_INVALIDA con Gemini
+{"ok":false,"error":{"codigo":"IMAGEN_INVALIDA","mensaje":"Imagen invalida"},"id":"c-5a1cae0a"}
+HTTP 400 | 0.956128s
+
+== foto: test/fotos/organico/rama-con-hojas.jpg
+{"ok":true,"categoria":"organico","mensaje":"Organico","etiqueta":"rama con hojas","confianza":0.98,"tiempo_ms":1701,"id":"c-9f71ed7e"}
+HTTP 200 | 2.762836s
+
+== foto: test/fotos/inorganico_reciclable/caja-de-carton.jpg
+{"ok":true,"categoria":"inorganico_reciclable","mensaje":"Reciclable","etiqueta":"carton","confianza":0.95,"tiempo_ms":5643,"id":"c-5c9b8eb8"}
+HTTP 200 | 6.267773s
+
+== foto: test/fotos/inorganico_no_reciclable/pedazo-de-ceramica.jpg
+{"ok":true,"categoria":"inorganico_no_reciclable","mensaje":"No reciclable","etiqueta":"fragmento de cerámica","confianza":0.95,"tiempo_ms":1366,"id":"c-7e589bdf"}
+HTTP 200 | 2.014701s
