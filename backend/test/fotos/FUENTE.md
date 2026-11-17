@@ -12,7 +12,7 @@ No son fotos de la cámara OV5640: la prueba con el dispositivo real es la T13.
 | Archivo | Original | Tamaño |
 |---|---|---:|
 | `organico/restos-de-comida.jpg` | `RealWaste/Food Organics/Food Organics_5.jpg` | 205 KB |
-| `organico/trozo-de-verdura.jpg` | `RealWaste/Food Organics/Food Organics_61.jpg` | 157 KB |
+| `organico/cascara-de-pina.jpg` | `RealWaste/Food Organics/Food Organics_260.jpg` | 223 KB |
 | `organico/rama-con-hojas.jpg` | `RealWaste/Vegetation/Vegetation_48.jpg` | 188 KB |
 | `organico/pasto-cortado.jpg` | `RealWaste/Vegetation/Vegetation_77.jpg` | 209 KB |
 | `inorganico_reciclable/caja-de-carton.jpg` | `RealWaste/Cardboard/Cardboard_48.jpg` | 83 KB |
@@ -21,4 +21,5 @@ No son fotos de la cámara OV5640: la prueba con el dispositivo real es la T13.
 | `inorganico_reciclable/periodico.jpg` | `RealWaste/Paper/Paper_48.jpg` | 128 KB |
 | `inorganico_no_reciclable/trapo.jpg` | `RealWaste/Miscellaneous Trash/Miscellaneous Trash_5.jpg` | 146 KB |
 | `inorganico_no_reciclable/guirnalda-de-escarcha.jpg` | `RealWaste/Miscellaneous Trash/Miscellaneous Trash_33.jpg` | 133 KB |
-| `inorganico_no_reciclable/residuo-sucio.jpg` | `RealWaste/Miscellaneous Trash/Miscellaneous Trash_77.jpg` | 125 KB |
+| `inorganico_no_reciclable/esponja.jpg` | `RealWaste/Miscellaneous Trash/Miscellaneous Trash_120.jpg` | 129 KB |
+| `inorganico_no_reciclable/pedazo-de-ceramica.jpg` | `RealWaste/Miscellaneous Trash/Miscellaneous Trash_200.jpg` | 111 KB |
