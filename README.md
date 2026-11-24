@@ -62,4 +62,11 @@ Cada respuesta trae un `id`. El servidor escribe una línea JSON por petición c
 
 Copiar `firmware/include/secrets.example.h` a `secrets.h` y llenarlo (`BACKEND_URL` = `https://<servicio>.onrender.com/api/clasificar`, `DEVICE_KEY` igual a la del servidor). Compilar y subir con PlatformIO.
 
-`clasificarFoto(jpg, len)` (`src/clasificador_api.cpp`) conecta el Wi-Fi si hace falta, manda el JPEG por HTTPS validando el certificado del servidor, espera hasta 18 s y devuelve la respuesta ya interpretada. El `main.cpp` actual es de prueba: al presionar BOOT manda `data/foto_prueba.jpg` y escribe la respuesta en el Monitor Serie (115200).
+Placa ESP32-S3 N16R8 con OV3660 integrada, 2 OLED 0.96" y un botón. **Todos los pines están en `firmware/include/pines.h`**; los del botón y las pantallas son sugeridos y hay que confirmarlos con el circuito.
+
+- Al encender: inicia pantallas, cámara y Wi-Fi, y despierta al servidor (`/health`, hasta 60 s si Render estaba dormido).
+- Pantalla 1: "Coloca el residuo y presiona el botón" → "Procesando..." → resultado (categoría, objeto y confianza) o el mensaje de error, 5 s, y vuelve a esperar.
+- Pantalla 2: Wi-Fi conectado o sin conexión, última clasificación y número de clasificaciones.
+- Cada clasificación deja una línea en el Monitor Serie (115200) con el `id`, que es el mismo `_id` del registro en MongoDB.
+
+Archivos: `main.cpp` (ciclo), `camara.cpp` (OV3660 en JPEG VGA), `pantallas.cpp` (U8g2; si las OLED fueran SH1106 se cambia una línea) y `clasificador_api.cpp` (Wi-Fi y envío HTTPS validando el certificado; espera hasta 18 s). Si el Monitor Serie no muestra nada por el USB nativo de la placa, agregar `-DARDUINO_USB_CDC_ON_BOOT=1` a `build_flags`.

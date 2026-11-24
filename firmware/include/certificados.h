@@ -1,5 +1,5 @@
 // Raíces de Google Trust Services (fuente: https://pki.goog/repo/certs/). Vigentes hasta 2036.
-// Cloud Run (*.run.app) encadena hasta GTS Root R4; R1 se incluye por si Google rota a RSA.
+// Render (*.onrender.com) encadena WE1 → GTS Root R4; R1 se incluye por si rotan a RSA.
 #pragma once
 
 static const char RAICES_GOOGLE_PEM[] = R"PEM(

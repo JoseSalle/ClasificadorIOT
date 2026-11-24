@@ -18,6 +18,21 @@ bool conectarWifi(uint32_t timeout_ms) {
   return WiFi.status() == WL_CONNECTED;
 }
 
+bool despertarServidor(uint32_t timeout_ms) {
+  if (WiFi.status() != WL_CONNECTED) return false;
+  String url = BACKEND_URL;
+  url.replace("/api/clasificar", "/health");
+  WiFiClientSecure tls;
+  tls.setCACert(RAICES_GOOGLE_PEM);
+  HTTPClient http;
+  http.setConnectTimeout(timeout_ms);
+  http.setTimeout(timeout_ms);
+  if (!http.begin(tls, url)) return false;
+  int codigo = http.GET();
+  http.end();
+  return codigo == 200;
+}
+
 static Respuesta errorLocal(Estado e, const char *mensaje, int http = 0) {
   Respuesta r;
   r.estado = e;
@@ -87,6 +102,7 @@ const char *nombreEstado(Estado e) {
     case Estado::SIN_CONEXION: return "SIN_CONEXION";
     case Estado::TIEMPO_AGOTADO: return "TIEMPO_AGOTADO";
     case Estado::RESPUESTA_INVALIDA: return "RESPUESTA_INVALIDA";
+    case Estado::ERROR_CAMARA: return "ERROR_CAMARA";
   }
   return "?";
 }
