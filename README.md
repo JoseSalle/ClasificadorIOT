@@ -11,7 +11,7 @@ Pantalla ← resultado (JSON) ←───────────────�
                                             └→ MongoDB (solo guarda resultados)
 ```
 
-El detalle paso a paso está en [`docs/funcionamiento.md`](docs/funcionamiento.md) y el formato de comunicación en [`docs/contrato.md`](docs/contrato.md).
+El detalle paso a paso está en [`docs/funcionamiento.md`](docs/funcionamiento.md) y el formato de comunicación en [`docs/contrato.md`](docs/contrato.md). La documentación del código está en [`docs/backend.md`](docs/backend.md) y [`docs/firmware.md`](docs/firmware.md).
 
 ## Estructura
 
@@ -22,6 +22,8 @@ pruebas/     protocolo, matriz de resultados y evidencias
 docs/
 ├── contrato.md        comunicación placa ↔ servidor
 ├── funcionamiento.md  qué hace el dispositivo
+├── backend.md         documentación del código del servidor
+├── firmware.md        documentación del código de la placa
 ├── hardware/          componentes, pines, conexiones y carcasa 3D
 └── informe/           informe del proyecto
 ```
